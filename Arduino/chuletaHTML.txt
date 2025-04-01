@@ -1,0 +1,70 @@
+EthernetClient client = server.available();
+if (client) {
+  Serial.println("new client");
+  // Una solicitud HTTP cuya línea está en blanco
+  boolean currentLineIsBlank = true;
+  
+  while (client.connected()) {
+    if (client.available()) {
+      char c = client.read();
+      Serial.write(c);
+      
+      // Leemos el tipo de petición GET/POST
+      if (method.length() < 4)
+        method += c;       
+      
+      // Hemos leído el tipo de petición; comprobamos cuál es y actuamos en consecuencia
+      if (method.length() == 4 && method_readed == false) {
+        method_readed = true;
+        
+        // Ver si es POST o GET
+        if (method == "POST") {
+          // Cambiar estado del relé
+        }
+      }  // <== Se agregó esta llave para cerrar el bloque anterior
+      
+      // Si la línea en la solicitud HTTP está en blanco y el cliente está disponible, se puede enviar una respuesta
+      if (c == '\n' && currentLineIsBlank) {
+        // Resetear variables de method
+        method = "";
+        method_readed = false;
+        
+        client.println("HTTP/1.1 200 OK");
+        client.println("Content-Type: text/html");
+        client.println("Connnection: close");
+        client.println();
+        client.println("<!DOCTYPE HTML>");
+        client.println("<html>");
+        // Agregar una etiqueta meta que recargue la página cada segundo
+        client.println("<meta http-equiv=\"refresh\" content=\"1\">");
+        client.print("TITULO");   
+        client.println("<br />");    
+        
+        // Obtener las lecturas del sensor e imprimir el resultado y ventilador
+        
+        // Añadimos un botón para controlar el estado del relé
+        client.println("<form action = '/' method = 'post'>  <input type='submit' value='ON/OFF'>  </form>");
+        client.println("</html>");
+        
+        // Termina lectura del sensor
+        client.println("</html>");
+        break;
+      }
+      
+      if (c == '\n') {
+        // Línea en blanco
+        currentLineIsBlank = true;
+      } else if (c != '\r') {
+        // Si hay un carácter en la línea
+        currentLineIsBlank = false;
+      }
+    }
+  }
+  
+  // Darle al navegador web tiempo para recibir los datos 
+  delay(1000); // Retardo de 1000 ms = 1s para repetir el ciclo void loop.
+  
+  // Se cierra la conexión
+  client.stop();
+  Serial.println("client disconnected");
+}
